@@ -13,6 +13,7 @@ from pyrogram.raw.functions.messages import RequestWebView
 
 from bot.config import settings
 from bot.utils import logger
+from bot.utils.town import build_town
 from bot.utils.scripts import escape_html, login_in_browser
 from bot.exceptions import InvalidSession
 from .headers import headers
@@ -252,6 +253,24 @@ class Tapper:
                                 logger.success(f"{self.session_name} | Successfully claim <m>{task_id}</m> reward")
 
                                 await asyncio.sleep(delay=1)
+
+                # Строим город
+                if settings.AUTO_UPGRADE_TOWN is True:
+                    logger.info(f"{self.session_name} | Sleep 15s before upgrade Build")
+                    await asyncio.sleep(delay=15)
+
+                    status = await build_town(self, http_client=http_client, profile_data=profile_data)
+                    if status is True:
+                        logger.success(f"{self.session_name} | <le>Build is update...</le>")
+                        # Запустилось строительтсов нового здания, чтобы корреткно расссчитать время ококнчания строительтсва
+                        # Необходимо обновить все данные пользователя. Запустим цикл сначала.
+                        # Особенно критично на начальных уровнях!
+                        await http_client.close()
+                        if proxy_conn:
+                            if not proxy_conn.closed:
+                                proxy_conn.close()
+                        access_token_created_time = 0
+                        continue
 
                 taps = randint(a=settings.RANDOM_TAPS_COUNT[0], b=settings.RANDOM_TAPS_COUNT[1])
 

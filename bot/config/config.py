@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     AUTO_UPGRADE_CHARGE: bool = True
     MAX_CHARGE_LEVEL: int = 5
 
+    AUTO_UPGRADE_TOWN: bool = True
+    MAX_TOWN_LEVEL: int = 20
+
     APPLY_DAILY_ENERGY: bool = True
     APPLY_DAILY_TURBO: bool = True
 
