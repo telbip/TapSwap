@@ -1,4 +1,5 @@
 import asyncio
+from pprint import pprint
 from time import time
 import aiohttp
 import json
@@ -64,11 +65,16 @@ async def build_town(self, http_client: aiohttp.ClientSession, profile_data) -> 
     b_videos = profile_data["player"]["videos"]
     b_reward = profile_data["player"]["stat"]["reward"]
     # Список зданий готовых к апгрейду
+
     upgrade_list = dict()
 
     # Создадим словарь зданий возможных к апгрейду с указанием уровня {id: [lvl, rate]}
     for id, name in b_name.items():
         cost = build_new_level(id, profile_data)
+
+        if cost is None:
+            continue
+
         cur_lvl = build_current_level(id, profile_data)
 
         # Проверим не строится ли здание еще
@@ -204,7 +210,12 @@ def build_new_level(b_id, profile_data) -> dict:
     data = {"id": b_id}
 
     i = int(b_id.removeprefix("b_")) - 1  # вычислим индекс из id здания
+
     levels = profile_data["conf"]["town"]["buildings"][i]["levels"][2]
+
+    if levels is None:
+        return None
+
     data.update(levels["cost"])
 
     # добыча блоков на новом уровне шт/час
