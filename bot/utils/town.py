@@ -36,6 +36,7 @@ b_name = {
 
 async def update_build(http_client: aiohttp.ClientSession, b_id: str) -> Union[str, dict]:
     response_text = ""
+    message = ""
     try:
         response = await http_client.post(url="https://api.tapswap.club/api/town/upgrade_building",
                                           json={"building_id": b_id})
@@ -45,14 +46,13 @@ async def update_build(http_client: aiohttp.ClientSession, b_id: str) -> Union[s
         message = json.loads(response_text)
 
         return message  # возвращаем инфу об обновлении здания
-
     except Exception as error:
         # logger.error(
         #     f"{self.session_name} | Unknown error when Update [{b_id}] <y>{b_name[b_id]}</y>: {escape_html(error)} | "
         #     f"Response text: {escape_html(response_text)[:128]}..."
         # )
         await asyncio.sleep(delay=3)
-        return str(message["message"])
+        return str(message.get("message", "NO"))
 
 
 # Возвращает False если что-то идет не так или все строители заняты
