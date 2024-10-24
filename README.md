@@ -1,84 +1,95 @@
-[<img src="https://img.shields.io/badge/Telegram-%40Me-orange">](https://t.me/sho6ot)
+# PinEye
 
+[![Static Badge](https://img.shields.io/badge/Telegram-BOT-Link?style=for-the-badge&logo=Telegram&logoColor=white&logoSize=auto&color=blue)](https://t.me/PinEye_Bot/pineye?startapp=r_352437152)
+
+[![Static Badge](https://img.shields.io/badge/My_Telegram_Сhannel-@CryptoCats__tg-Link?style=for-the-badge&logo=Telegram&logoColor=white&logoSize=auto&color=blue)](https://t.me/CryptoCats_tg)
 
 ![img1](.github/images/demo.png)
 
-> 🇪🇳 README in english available [here](README-EN.md)
-
-## Функционал  
-| Функционал                                                     | Поддерживается  |
-|----------------------------------------------------------------|:---------------:|
-| Многопоточность                                                |        ✅        |
-| Привязка прокси к сессии                                       |        ✅        |
-| Авто-покупка предметов при наличии монет (tap, energy, charge) |        ✅        |
-| Рандомное время сна между кликами                              |        ✅        |
-| Рандомное количество кликов за запрос                          |        ✅        |
-| Поддержка tdata / pyrogram .session / telethon .session        |        ✅        |
+[![Static Badge](https://img.shields.io/badge/README_in_Ukrainian_available-README_%D0%A3%D0%BA%D1%80%D0%B0%D1%97%D0%BD%D1%81%D1%8C%D0%BA%D0%BE%D1%8E_%D0%BC%D0%BE%D0%B2%D0%BE%D1%8E-blue.svg?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAwIiBoZWlnaHQ9IjgwMCI+DQo8cmVjdCB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI4MDAiIGZpbGw9IiMwMDU3QjciLz4NCjxyZWN0IHdpZHRoPSIxMjAwIiBoZWlnaHQ9IjQwMCIgeT0iNDAwIiBmaWxsPSIjRkZENzAwIi8+DQo8L3N2Zz4=)](README-UA.md)
+[![Static Badge](https://img.shields.io/badge/README_in_russian_available-README_%D0%BD%D0%B0_%D1%80%D1%83%D1%81%D1%81%D0%BA%D0%BE%D0%BC_%D1%8F%D0%B7%D1%8B%D0%BA%D0%B5-blue?style=for-the-badge)](README-RU.md)
 
 
-## [Настройки](https://github.com/shamhi/TapSwapBot/blob/main/.env-example)
-| Настройка                | Описание                                                                                      |
-|--------------------------|-----------------------------------------------------------------------------------------------|
-| **API_ID / API_HASH**    | Данные платформы, с которой запускать сессию Telegram _(сток - Android)_                      |
-| **MIN_AVAILABLE_ENERGY** | Минимальное количество доступной энергии, при достижении которой будет задержка _(напр. 100)_ |
-| **SLEEP_BY_MIN_ENERGY**  | Задержка при достижении минимальной энергии в секундах _(напр. [1800,2400])_                  |
-| **ADD_TAPS_ON_TURBO**    | Сколько тапов будет добавлено при активации турбо _(напр. 2500)_                              |
-| **AUTO_UPGRADE_TAP**     | Улучшать ли тап _(True / False)_                                                              |
-| **MAX_TAP_LEVEL**        | Максимальный уровень прокачки тапа _(до 20)_                                                  |
-| **AUTO_UPGRADE_ENERGY**  | Улучшать ли энергию _(True / False)_                                                          |
-| **MAX_ENERGY_LEVEL**     | Максимальный уровень прокачки энергии _(до 20)_                                               |
-| **AUTO_UPGRADE_CHARGE**  | Улучшать ли заряд энергии _(True / False)_                                                    |
-| **MAX_CHARGE_LEVEL**     | Максимальный уровень прокачки заряда энергии _(до 5)_                                         |
-| **APPLY_DAILY_ENERGY**   | Использовать ли ежедневный бесплатный буст энергии _(True / False)_                           |
-| **APPLY_DAILY_TURBO**    | Использовать ли ежедневный бесплатный буст турбо _(True / False)_                             |
-| **RANDOM_CLICKS_COUNT**  | Рандомное количество тапов _(напр. [50,200])_                                                 |
-| **SLEEP_BETWEEN_TAP**    | Рандомная задержка между тапами в секундах _(напр. [10,25])_                                  |
-| **USE_PROXY_FROM_FILE**  | Использовать-ли прокси из файла `bot/config/proxies.txt` _(True / False)_                     |
+## Functionality
+| Functional                                                     | Supported |
+|----------------------------------------------------------------|:---------:|
+| Multithreading                                                 |     ✅     |
+| Binding a proxy to a session                                   |     ✅     |
+| Auto-completion of tasks🔥         		                     |     ✅     |
+| Auto-purchase of items if you have coins (tap, energy, charge) |     ✅     |
+| Random sleep time between clicks                               |     ✅     |
+| Random number of clicks per request                            |     ✅     |
+| Support tdata / pyrogram .session / telethon .session          |     ✅     |
 
-## Быстрый старт 📚
-1. Чтобы установить библиотеки в Windows, запустите INSTALL.bat.
-2. Для запуска бота используйте `START.bat` (или в консоли: `python main.py`).
 
-## Предварительные условия
-Прежде чем начать, убедитесь, что у вас установлено следующее:
-- [Python](https://www.python.org/downloads/) версии 3.10 или 3.11.
+## [Settings](https://github.com/CatSnowdrop/TapSwap/blob/main/.env-example)
+| Setting                  | Description                                                                              |
+|--------------------------|------------------------------------------------------------------------------------------|
+| **API_ID / API_HASH**    | Platform data from which to launch a Telegram session _(stock - Android)_                |
+| **MIN_AVAILABLE_ENERGY** | Minimum amount of available energy, upon reaching which there will be a delay _(eg 100)_ |
+| **SLEEP_BY_MIN_ENERGY**  | Delay when reaching minimum energy in seconds _(eg [1800,2400])_                         |
+| **ADD_TAPS_ON_TURBO**    | How many taps will be added when turbo is activated _(eg 2500)_                          |
+| **AUTO_TASK**			   | Automated task completion _(True / False)_                            			   	      |
+| **MAX_TASK_ITERATIONS**  | Number of tasks per 1 cycle _(напр. 4)_												  |
+| **AUTO_UPGRADE_TAP**     | Should I improve the tap _(True / False)_                                                |
+| **MAX_TAP_LEVEL**        | Maximum level of tap pumping _(up to 20)_                                                |
+| **AUTO_UPGRADE_ENERGY**  | Should I improve the energy _(True / False)_                                             |
+| **MAX_ENERGY_LEVEL**     | Maximum level of energy pumping _(up to 20)_                                             |
+| **AUTO_UPGRADE_CHARGE**  | Should I improve the charge _(True / False)_                                             |
+| **MAX_CHARGE_LEVEL**     | Maximum level of charge pumping _(up to 5)_                                              |
+| **APPLY_DAILY_ENERGY**   | Whether to use the daily free energy boost _(True / False)_                              |
+| **APPLY_DAILY_TURBO**    | Whether to use the daily free turbo boost (_True / False)_                               |
+| **RANDOM_CLICKS_COUNT**  | Random number of taps _(eg [50,200])_                                                    |
+| **SLEEP_BETWEEN_TAP**    | Random delay between taps in seconds _(eg [10,25])_                                      |
+| **USE_PROXY_FROM_FILE**  | Whether to use proxy from the `bot/config/proxies.txt` file _(True / False)_             |
 
-## Получение API ключей
-1. Перейдите на сайт [my.telegram.org](https://my.telegram.org) и войдите в систему, используя свой номер телефона.
-2. Выберите **"API development tools"** и заполните форму для регистрации нового приложения.
-3. Запишите `API_ID` и `API_HASH` в файле `.env`, предоставленные после регистрации вашего приложения.
+## Quick Start 📚
+1. To install libraries on Windows click on `INSTALL.bat`.
+2. To start the bot use `START.bat` (or in console: `python main.py`).
 
-## Установка
-Вы можете скачать [**Репозиторий**](https://github.com/shamhi/TapSwapBot) клонированием на вашу систему и установкой необходимых зависимостей:
+## Prerequisites
+Before you begin, ensure you have the following installed:
+- [Python](https://www.python.org/downloads/) version 3.10 or 3.11
+
+## Obtaining API Keys
+1. Go to [my.telegram.org](https://my.telegram.org) and log in using your phone number.
+2. Select **"API development tools"** and fill out the form to register a new application.
+3. Note down the `API_ID` and `API_HASH` in `.env` file provided after registering your application.
+
+## Installation
+You can download [**Repository**](https://github.com/CatSnowdrop/TapSwap) by cloning it to your system and installing the necessary dependencies:
 ```shell
-~ >>> git clone https://github.com/shamhi/TapSwapBot.git 
-~ >>> cd TapSwapBot
+~ >>> git clone https://github.com/CatSnowdrop/TapSwap.git
+~ >>> cd TapSwap
 
-# Linux
-~/TapSwapBot >>> python3 -m venv venv
-~/TapSwapBot >>> source venv/bin/activate
-~/TapSwapBot >>> pip3 install -r requirements.txt
-~/TapSwapBot >>> cp .env-example .env
-~/TapSwapBot >>> nano .env  # Здесь вы обязательно должны указать ваши API_ID и API_HASH , остальное берется по умолчанию
-~/TapSwapBot >>> sh install.sh
-~/TapSwapBot >>> python3 main.py
+# If you are using Telethon sessions, then clone the "converter" branch
+~ >>> git clone https://github.com/CatSnowdrop/TapSwap.git -b converter
+~ >>> cd TapSwap
 
-# Windows
-~/TapSwapBot >>> python -m venv venv
-~/TapSwapBot >>> venv\Scripts\activate
-~/TapSwapBot >>> pip install -r requirements.txt
-~/TapSwapBot >>> copy .env-example .env
-~/TapSwapBot >>> # Указываете ваши API_ID и API_HASH, остальное берется по умолчанию
-~/TapSwapBot >>> python main.py
+#Linux
+~/TapSwap >>> python3 -m venv venv
+~/TapSwap >>> source venv/bin/activate
+~/TapSwap >>> pip3 install -r requirements.txt
+~/TapSwap >>> cp .env-example .env
+~/TapSwap >>> nano .env # Here you must specify your API_ID and API_HASH , the rest is taken by default
+~/TapSwap >>> python3 main.py
+
+#Windows
+~/TapSwap >>> python -m venv venv
+~/TapSwap >>> venv\Scripts\activate
+~/TapSwap >>> pip install -r requirements.txt
+~/TapSwap >>> copy .env-example .env
+~/TapSwap >>> # Specify your API_ID and API_HASH, the rest is taken by default
+~/TapSwap >>> python main.py
 ```
 
-Также для быстрого запуска вы можете использовать аргументы, например:
+Also for quick launch you can use arguments, for example:
 ```shell
-~/TapSwapBot >>> python3 main.py --action (1/2/3)
-# Или
-~/TapSwapBot >>> python3 main.py -a (1/2/3)
+~/TapSwap >>> python3 main.py --action (1/2/3)
+# Or
+~/TapSwap >>> python3 main.py -a (1/2/3)
 
-# 1 - Создает сессию
-# 2 - Запускает кликер
-# 3 - Запуск через Telegram
+#1 - Create session
+#2 - Run clicker
+#3 - Run via Telegram
 ```

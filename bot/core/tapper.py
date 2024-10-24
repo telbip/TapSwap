@@ -2,6 +2,7 @@ import json
 import asyncio
 from time import time
 from random import randint
+import requests
 
 import aiohttp
 from aiocfscrape import CloudflareScraper
@@ -157,6 +158,152 @@ class Tapper:
 
             return False
 
+    async def join_to_tg_channel(self, chat) -> dict[str]:
+        try:
+            with_tg = True
+
+            if not self.tg_client.is_connected:
+                with_tg = False
+                try:
+                    await self.tg_client.connect()
+                except (Unauthorized, UserDeactivated, AuthKeyUnregistered):
+                    raise InvalidSession(self.session_name)
+
+            return_chat = await self.tg_client.join_chat(chat)
+
+            if with_tg is False:
+                await self.tg_client.disconnect()
+
+            return return_chat
+        except Exception as error:
+            logger.error(f"{self.session_name} | Unknown error when join_to_tg_channel: {error} | ")
+            await asyncio.sleep(delay=3)
+
+    async def get_answers(self) -> dict[str]:
+        try:
+            url = 'https://raw.githubusercontent.com/CatSnowdrop/Database/main/TapSwap.json'
+            data = requests.get(url=url)
+            data_json = data.json()
+
+            return data_json
+
+        except Exception as error:
+            logger.error(f"{self.session_name} | Unknown error when get_answers: {escape_html(error)} | "
+                         f"Response text: {escape_html(response_text)[:128]}...")
+            await asyncio.sleep(delay=3)
+
+    async def join_mission(self, http_client: aiohttp.ClientSession, max_count_tasks:int) -> dict[str]:    # начинаем задание (инит)
+        try:
+            count_tasks=0
+            for this_not_started in self.not_started:                                        
+                if count_tasks == max_count_tasks:
+                    break
+                logger.info(f"{self.session_name} | Initiate <m>{this_not_started['title']}</m> task")
+                json_data = {"id":this_not_started['id']}
+                try:
+                    response = await http_client.post(url='https://api.tapswap.club/api/missions/join_mission', json=json_data)
+                    response_text = await response.text()
+                    response.raise_for_status()
+                    response_json = await response.json()
+                    if response.status != 200 and response.status != 201:
+                        for this_active_missions in response_json['account']['missions']['active']:
+                            for this_not_started in self.not_started:
+                                if this_active_missions['id'] == this_not_started['id']:
+                                    self.started_mission.append(this_not_started)
+                                    self.not_started.remove(this_not_started)
+                except Exception as error:
+                    logger.error(f"{self.session_name} | Unknown error when send join_mission: {escape_html(error)} | "
+                                 f"Response text: {escape_html(response_text)[:128]}...")
+                await asyncio.sleep(delay=randint(a=3, b=10))
+                count_tasks += 1
+        except Exception as error:
+            logger.error(f"{self.session_name} | Unknown error when join_mission: {escape_html(error)}")
+            await asyncio.sleep(delay=3)
+
+    async def get_task_info(self, missions_id, item) -> dict[str]:
+        try:
+            for this_mission in self.started_mission:
+                if this_mission['id'] == missions_id:
+                    json_return = {'status':True, 'reward':this_mission['reward'], 'title':this_mission['title'], 'items':this_mission['items'][item]}
+                    return json_return
+        except Exception as error:
+            logger.error(f"{self.session_name} | Unknown error when get_task_info: {escape_html(error)}")
+            await asyncio.sleep(delay=3)
+        json_return = {'status':False}
+        return json_return
+            
+    async def finish_mission_item(self, http_client: aiohttp.ClientSession, task_id: str, item_index: int, user_input=None) -> dict[str]:
+        response_text = ''
+        try:
+            if user_input == None:
+                json_data = {"id":task_id, "itemIndex":item_index}
+            else:
+                json_data = {"id":task_id, "itemIndex":item_index, "user_input":user_input}
+            response = await http_client.post(url='https://api.tapswap.club/api/missions/finish_mission_item', json=json_data)
+            response_text = await response.text()
+
+            if response.status != 200 and response.status != 201:
+                logger.error(f"{self.session_name} | Finish mission item response text: {escape_html(response_text)[:128]}...")
+                print(response.status)
+                print(await response.json())
+
+            response_json = await response.json()
+            return response_json
+        except Exception as error:
+            logger.error(f"{self.session_name} | Unknown error when finish_mission_item: {escape_html(error)} | "
+                         f"Response text: {escape_html(response_text)[:128]}...")
+            await asyncio.sleep(delay=3)
+
+    async def check_task_response(self, task_response:dict, section:str, missions_id:str, item=0) -> dict[str]:
+        item=int(item)
+        try:
+            if section == 'completed':
+                for this_mission in task_response['account']['missions']['completed']:
+                    if this_mission == missions_id:
+                        return {'status':True, 'completed':True}
+                return {'status':True, 'completed':False}
+                        
+            elif section == 'active':
+                for this_mission in task_response['account']['missions']['active']:
+                    if this_mission['id'] == missions_id:
+                        all_verifed = True
+                        verifed = this_mission['items'][item]['verified']
+                        for this_item in this_mission['items']:
+                            if not this_item['verified']:
+                                all_verifed = False
+                        return {'status':True, 'this_verifed':verifed, 'all_verifed':all_verifed}
+                return {'status':True, 'this_verifed':False, 'all_verifed':False}
+        except Exception as error:
+            logger.error(f"{self.session_name} | Unknown error when check_task_response: {escape_html(error)}")
+            return {'status':False}
+            await asyncio.sleep(delay=3)
+
+    async def finish_mission(self, http_client: aiohttp.ClientSession, task_id: str) -> dict[str]:
+        response_text = ''
+        try:
+            json_data = {"id":task_id}
+
+            response = await http_client.post(url='https://api.tapswap.club/api/missions/finish_mission', json=json_data)
+            response_text = await response.text()
+
+            if response.status != 200 and response.status != 201:
+                logger.error(f"{self.session_name} | Finish mission response text: {escape_html(response_text)[:128]}...")
+                print(response.status)
+                print(await response.json())
+                return {'status':False}
+
+            response_json = await response.json()
+            for this_claims_missions in response_json['player']['claims']:
+                if task_id == this_claims_missions:
+                    return {'status':True, 'this_claim':True}
+            return {'status':True, 'this_claim':False}
+
+        except Exception as error:
+            logger.error(f"{self.session_name} | Unknown error when finish_mission: {escape_html(error)} | "
+                         f"Response text: {escape_html(response_text)[:128]}...")
+            await asyncio.sleep(delay=3)
+            return {'status':False}
+
     async def send_taps(self, http_client: aiohttp.ClientSession, taps: int) -> dict[str]:
         response_text = ''
         try:
@@ -206,7 +353,7 @@ class Tapper:
             return
 
         while True:
-            try:
+            try:         
                 if http_client.closed:
                     if proxy_conn:
                         if not proxy_conn.closed:
@@ -242,17 +389,123 @@ class Tapper:
                     charge_prices = {index + 1: data['price'] for index, data in
                                      enumerate(profile_data['conf']['charge_levels'])}
 
-                    claims = profile_data['player']['claims']
-                    if claims:
-                        for task_id in claims:
-                            logger.info(f"{self.session_name} | Sleep 5s before claim <m>{task_id}</m> reward")
-                            await asyncio.sleep(delay=5)
+                    if settings.AUTO_TASK is True:
+                        if 'missions' in profile_data['conf']:
+                            self.not_started = profile_data['conf']['missions']                         # все задания
+                        else:
+                            self.not_started = ''
+                        if 'missions' in profile_data['account']:
+                            self.active_missions = profile_data['account']['missions']['active']         # начатые задания
+                            self.completed_missions = profile_data['account']['missions']['completed']   # завершённые задания
+                        else:
+                            self.active_missions = ''
+                            self.completed_missions = ''
 
-                            status = await self.claim_reward(http_client=http_client, task_id=task_id)
-                            if status is True:
-                                logger.success(f"{self.session_name} | Successfully claim <m>{task_id}</m> reward")
+                        self.started_mission = []
+                        for this_completed_missions in self.completed_missions:                         # удаляем из списка выполненые заданыя
+                            for this_not_started in self.not_started:
+                                if this_completed_missions == this_not_started['id']:
+                                    self.not_started.remove(this_not_started)
+                        
+                        for this_active_missions in self.active_missions:                               # удаляем из списка начатые заданыя
+                            for this_not_started in self.not_started:
+                                if this_active_missions['id'] == this_not_started['id']:
+                                    self.started_mission.append(this_not_started)
+                                    self.not_started.remove(this_not_started)
 
-                                await asyncio.sleep(delay=1)
+                        self.answers = await self.get_answers()
+                                 
+                        await self.join_mission(http_client=http_client, max_count_tasks=settings.MAX_TASK_ITERATIONS)            # начинаем (инит) доступные задания
+
+                        for this_active_missions in self.active_missions:
+                            this_id = this_active_missions['id']                                 # id задания
+                            this_items = this_active_missions['items']                           # items задания
+                            all_items_count = len(this_items)                                    # количество items в задании
+                            all_items_verifed = True
+                            for this_item_index, this_item in enumerate(this_items):
+                                check_task_all=False
+                                task_info = await self.get_task_info(this_id, this_item_index)   # награда, заголовок, инфа о items
+                                if not task_info['status']:
+                                    continue
+                                this_reward = task_info['reward']
+                                this_title = task_info['title']
+                                this_item_info = task_info['items']
+                                this_item_type = this_item_info['type']                         # тип задания
+                                this_item_require_answer = this_item_info['require_answer']     # нужен ли ответ
+                                if 'verified' in this_item and this_item['verified'] == False:
+                                    all_items_verifed = False
+                                    if 'wait_duration_s' in this_item_info:
+                                        this_item_wait = this_item_info['wait_duration_s']
+                                    else:
+                                        this_item_wait = 0
+                                    if (this_item['verified_at'] + this_item_wait) < (time() * 1000):
+                                        if this_item_type == 'tg':
+                                            logger.info(f"{self.session_name} | Subscribe to the channel <m>{this_item_info['name']}</m>")
+                                            await self.join_to_tg_channel(this_item_info['name'])
+                                            await asyncio.sleep(delay=randint(a=5, b=20))
+                                        if this_item_require_answer:
+                                            if this_id in self.answers:
+                                                answer = self.answers[this_id]['answer'][this_item_index]
+                                                logger.info(f"{self.session_name} | Submit step {this_item_index+1}/{all_items_count} of the task <m>{this_title}</m> with the code <m>{answer}</m> for verification")
+                                                resp_finish_mission_item = await self.finish_mission_item(http_client=http_client, task_id=this_id, item_index=this_item_index, user_input=answer)
+                                                if 'statusCode' in resp_finish_mission_item and resp_finish_mission_item['statusCode'] != 200:
+                                                    logger.error(f"{self.session_name} | Error when sending to check step {this_item_index+1}/{all_items_count} of the task <m>{this_title}</m> "
+                                                                 f"with the answer code <m>{answer}</m>: {resp_finish_mission_item['message']}")
+                                                else:
+                                                    check_task_response = await self.check_task_response(task_response=resp_finish_mission_item, section='active', missions_id=this_id, item=this_item_index)
+                                                    if check_task_response['status']:
+                                                        check_task_all=check_task_response['all_verifed']
+                                                        if not check_task_response['this_verifed']:
+                                                            await asyncio.sleep(delay=35)
+                                                            resp_finish_mission_item = await self.finish_mission_item(http_client=http_client, task_id=this_id, item_index=this_item_index, user_input=answer)
+                                                            if 'statusCode' in resp_finish_mission_item and resp_finish_mission_item['statusCode'] != 200:
+                                                                logger.error(f"{self.session_name} | Error when sending to check step {this_item_index+1}/{all_items_count} of the task <m>{this_title}</m> "
+                                                                 f"with the answer code <m>{answer}</m>: {resp_finish_mission_item['message']}")
+                                                            else:
+                                                                check_task_response = await self.check_task_response(task_response=resp_finish_mission_item, section='active', missions_id=this_id, item=this_item_index)
+                                                                if check_task_response['status']:
+                                                                    check_task_all=check_task_response['all_verifed']
+                                            else:
+                                                logger.warning(f"{self.session_name} | There is no answer for the task {this_title} in the database yet")
+                                        else:
+                                            logger.info(f"{self.session_name} | Отправляем на проверку пункт {this_item_index+1}/{all_items_count} задания <m>{this_title}</m>")
+                                            resp_finish_mission_item = await self.finish_mission_item(http_client=http_client, task_id=this_id, item_index=this_item_index)
+                                            if 'statusCode' in resp_finish_mission_item and resp_finish_mission_item['statusCode'] != 200:
+                                                logger.error(f"{self.session_name} | Error when sending to check step {this_item_index+1}/{all_items_count} of the task <m>{this_title}</m>: {resp_finish_mission_item['message']}")
+                                            else:
+                                                check_task_response = await self.check_task_response(task_response=resp_finish_mission_item, section='active', missions_id=this_id, item=this_item_index)
+                                                if check_task_response['status']:
+                                                    check_task_all=check_task_response['all_verifed']
+                                                    if not check_task_response['this_verifed']:
+                                                        await asyncio.sleep(delay=35)
+                                                        resp_finish_mission_item = await self.finish_mission_item(http_client=http_client, task_id=this_id, item_index=this_item_index)
+                                                        if 'statusCode' in resp_finish_mission_item and resp_finish_mission_item['statusCode'] != 200:
+                                                            logger.error(f"{self.session_name} | Error when sending to check step {this_item_index+1}/{all_items_count} of the task <m>{this_title}</m>: {resp_finish_mission_item['message']}")
+                                                        else:
+                                                            check_task_response = await self.check_task_response(task_response=resp_finish_mission_item, section='active', missions_id=this_id, item=this_item_index)
+                                                            if check_task_response['status']:
+                                                                check_task_all=check_task_response['all_verifed']
+                                        if check_task_all:
+                                            finish_mission = await self.finish_mission(http_client=http_client, task_id=this_id)
+                                            if finish_mission['status']:
+                                                if finish_mission['this_claim']:
+                                                    status = await self.claim_reward(http_client=http_client, task_id=this_id)
+                                                    logger.success(f"{self.session_name} | Successfully claim <m>{this_title}</m> reward {this_reward}")
+                                        await asyncio.sleep(delay=randint(a=3, b=5))
+                                elif 'verified' not in this_item:
+                                    all_items_verifed = False
+                                    logger.info(f"{self.session_name} | Let's begin step {this_item_index+1}/{all_items_count} of the <m>{this_title}</m> assignment.")
+                                    resp_finish_mission_item = await self.finish_mission_item(http_client=http_client, task_id=this_id, item_index=this_item_index)
+                                    if 'statusCode' in resp_finish_mission_item and resp_finish_mission_item['statusCode'] != 200:
+                                        logger.error(f"{self.session_name} | Error starting step {this_item_index+1}/{all_items_count} of the <m>{this_title}</m> task execution: {resp_finish_mission_item['message']}")
+                                    await asyncio.sleep(delay=randint(a=2, b=5))
+                                if (this_item_index == all_items_count-1) and all_items_verifed:
+                                    finish_mission = await self.finish_mission(http_client=http_client, task_id=this_id)
+                                    if finish_mission['status']:
+                                        if finish_mission['this_claim']:
+                                            status = await self.claim_reward(http_client=http_client, task_id=this_id)
+                                            logger.success(f"{self.session_name} | Successfully claim <m>{this_title}</m> reward {this_reward}")
+                                    await asyncio.sleep(delay=randint(a=3, b=5))
 
                 # Строим город
                 if settings.AUTO_UPGRADE_TOWN is True:
@@ -405,7 +658,6 @@ class Tapper:
 
                 logger.info(f"Sleep {sleep_between_clicks}s")
                 await asyncio.sleep(delay=sleep_between_clicks)
-
 
 async def run_tapper(tg_client: Client, proxy: str | None, lock: asyncio.Lock):
     try:

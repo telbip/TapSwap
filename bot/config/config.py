@@ -12,6 +12,9 @@ class Settings(BaseSettings):
 
     ADD_TAPS_ON_TURBO: int = 2500
 
+    AUTO_TASK: bool = True
+    MAX_TASK_ITERATIONS: int = 4
+    
     AUTO_UPGRADE_TAP: bool = True
     MAX_TAP_LEVEL: int = 10
     AUTO_UPGRADE_ENERGY: bool = True
