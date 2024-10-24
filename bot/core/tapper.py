@@ -445,8 +445,9 @@ class Tapper:
                                                 logger.info(f"{self.session_name} | Submit step {this_item_index+1}/{all_items_count} of the task <m>{this_title}</m> with the code <m>{answer}</m> for verification")
                                                 resp_finish_mission_item = await self.finish_mission_item(http_client=http_client, task_id=this_id, item_index=this_item_index, user_input=answer)
                                                 if 'statusCode' in resp_finish_mission_item and resp_finish_mission_item['statusCode'] != 200:
-                                                    logger.error(f"{self.session_name} | Error when sending to check step {this_item_index+1}/{all_items_count} of the task <m>{this_title}</m> "
-                                                                 f"with the answer code <m>{answer}</m>: {resp_finish_mission_item['message']}")
+                                                    if resp_finish_mission_item['message'] != 'check_in_progress':
+                                                        logger.error(f"{self.session_name} | Error when sending to check step {this_item_index+1}/{all_items_count} of the task <m>{this_title}</m> "
+                                                                     f"with the answer code <m>{answer}</m>: {resp_finish_mission_item['message']}")
                                                 else:
                                                     check_task_response = await self.check_task_response(task_response=resp_finish_mission_item, section='active', missions_id=this_id, item=this_item_index)
                                                     if check_task_response['status']:
@@ -455,8 +456,9 @@ class Tapper:
                                                             await asyncio.sleep(delay=35)
                                                             resp_finish_mission_item = await self.finish_mission_item(http_client=http_client, task_id=this_id, item_index=this_item_index, user_input=answer)
                                                             if 'statusCode' in resp_finish_mission_item and resp_finish_mission_item['statusCode'] != 200:
-                                                                logger.error(f"{self.session_name} | Error when sending to check step {this_item_index+1}/{all_items_count} of the task <m>{this_title}</m> "
-                                                                 f"with the answer code <m>{answer}</m>: {resp_finish_mission_item['message']}")
+                                                                if resp_finish_mission_item['message'] != 'check_in_progress':
+                                                                    logger.error(f"{self.session_name} | Error when sending to check step {this_item_index+1}/{all_items_count} of the task <m>{this_title}</m> "
+                                                                    f"with the answer code <m>{answer}</m>: {resp_finish_mission_item['message']}")
                                                             else:
                                                                 check_task_response = await self.check_task_response(task_response=resp_finish_mission_item, section='active', missions_id=this_id, item=this_item_index)
                                                                 if check_task_response['status']:
@@ -467,7 +469,8 @@ class Tapper:
                                             logger.info(f"{self.session_name} | Submit step {this_item_index+1}/{all_items_count} of the task <m>{this_title}</m> for verification")
                                             resp_finish_mission_item = await self.finish_mission_item(http_client=http_client, task_id=this_id, item_index=this_item_index)
                                             if 'statusCode' in resp_finish_mission_item and resp_finish_mission_item['statusCode'] != 200:
-                                                logger.error(f"{self.session_name} | Error when sending to check step {this_item_index+1}/{all_items_count} of the task <m>{this_title}</m>: {resp_finish_mission_item['message']}")
+                                                if resp_finish_mission_item['message'] != 'check_in_progress':
+                                                    logger.error(f"{self.session_name} | Error when sending to check step {this_item_index+1}/{all_items_count} of the task <m>{this_title}</m>: {resp_finish_mission_item['message']}")
                                             else:
                                                 check_task_response = await self.check_task_response(task_response=resp_finish_mission_item, section='active', missions_id=this_id, item=this_item_index)
                                                 if check_task_response['status']:
@@ -476,7 +479,8 @@ class Tapper:
                                                         await asyncio.sleep(delay=35)
                                                         resp_finish_mission_item = await self.finish_mission_item(http_client=http_client, task_id=this_id, item_index=this_item_index)
                                                         if 'statusCode' in resp_finish_mission_item and resp_finish_mission_item['statusCode'] != 200:
-                                                            logger.error(f"{self.session_name} | Error when sending to check step {this_item_index+1}/{all_items_count} of the task <m>{this_title}</m>: {resp_finish_mission_item['message']}")
+                                                            if resp_finish_mission_item['message'] != 'check_in_progress':
+                                                                logger.error(f"{self.session_name} | Error when sending to check step {this_item_index+1}/{all_items_count} of the task <m>{this_title}</m>: {resp_finish_mission_item['message']}")
                                                         else:
                                                             check_task_response = await self.check_task_response(task_response=resp_finish_mission_item, section='active', missions_id=this_id, item=this_item_index)
                                                             if check_task_response['status']:
