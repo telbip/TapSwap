@@ -242,10 +242,8 @@ class Tapper:
             response = await http_client.post(url='https://api.tapswap.club/api/missions/finish_mission_item', json=json_data)
             response_text = await response.text()
 
-            if response.status != 200 and response.status != 201:
-                logger.error(f"{self.session_name} | Finish mission item response text: {escape_html(response_text)[:128]}...")
-                print(response.status)
-                print(await response.json())
+            #if response.status != 200 and response.status != 201:
+            #    logger.warning(f"{self.session_name} | Finish mission item response text: {escape_html(response_text)[:128]}...")
 
             response_json = await response.json()
             return response_json
@@ -287,9 +285,7 @@ class Tapper:
             response_text = await response.text()
 
             if response.status != 200 and response.status != 201:
-                logger.error(f"{self.session_name} | Finish mission response text: {escape_html(response_text)[:128]}...")
-                print(response.status)
-                print(await response.json())
+                logger.warning(f"{self.session_name} | Finish mission response text: {escape_html(response_text)[:128]}...")
                 return {'status':False}
 
             response_json = await response.json()
@@ -468,7 +464,7 @@ class Tapper:
                                             else:
                                                 logger.warning(f"{self.session_name} | There is no answer for the task {this_title} in the database yet")
                                         else:
-                                            logger.info(f"{self.session_name} | Отправляем на проверку пункт {this_item_index+1}/{all_items_count} задания <m>{this_title}</m>")
+                                            logger.info(f"{self.session_name} | Submit step {this_item_index+1}/{all_items_count} of the task <m>{this_title}</m> for verification")
                                             resp_finish_mission_item = await self.finish_mission_item(http_client=http_client, task_id=this_id, item_index=this_item_index)
                                             if 'statusCode' in resp_finish_mission_item and resp_finish_mission_item['statusCode'] != 200:
                                                 logger.error(f"{self.session_name} | Error when sending to check step {this_item_index+1}/{all_items_count} of the task <m>{this_title}</m>: {resp_finish_mission_item['message']}")
