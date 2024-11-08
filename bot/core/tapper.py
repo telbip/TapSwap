@@ -385,32 +385,33 @@ class Tapper:
                     charge_prices = {index + 1: data['price'] for index, data in
                                      enumerate(profile_data['conf']['charge_levels'])}
 
-                    if settings.AUTO_TASK is True:
-                        if 'missions' in profile_data['conf']:
-                            self.not_started = profile_data['conf']['missions']                         # все задания
-                        else:
-                            self.not_started = ''
-                        if 'missions' in profile_data['account']:
-                            self.active_missions = profile_data['account']['missions']['active']         # начатые задания
-                            self.completed_missions = profile_data['account']['missions']['completed']   # завершённые задания
-                        else:
-                            self.active_missions = ''
-                            self.completed_missions = ''
+                    if 'missions' in profile_data['conf']:
+                        self.not_started = profile_data['conf']['missions']                         # все задания
+                    else:
+                        self.not_started = ''
+                    if 'missions' in profile_data['account']:
+                        self.active_missions = profile_data['account']['missions']['active']         # начатые задания
+                        self.completed_missions = profile_data['account']['missions']['completed']   # завершённые задания
+                    else:
+                        self.active_missions = ''
+                        self.completed_missions = ''
 
-                        self.started_mission = []
-                        for this_completed_missions in self.completed_missions:                         # удаляем из списка выполненые заданыя
-                            for this_not_started in self.not_started:
-                                if this_completed_missions == this_not_started['id']:
-                                    self.not_started.remove(this_not_started)
-                        
-                        for this_active_missions in self.active_missions:                               # удаляем из списка начатые заданыя
-                            for this_not_started in self.not_started:
-                                if this_active_missions['id'] == this_not_started['id']:
-                                    self.started_mission.append(this_not_started)
-                                    self.not_started.remove(this_not_started)
+                    self.started_mission = []
+                    for this_completed_missions in self.completed_missions:                         # удаляем из списка выполненые заданыя
+                        for this_not_started in self.not_started:
+                            if this_completed_missions == this_not_started['id']:
+                                self.not_started.remove(this_not_started)
+                    
+                    for this_active_missions in self.active_missions:                               # удаляем из списка начатые заданыя
+                        for this_not_started in self.not_started:
+                            if this_active_missions['id'] == this_not_started['id']:
+                                self.started_mission.append(this_not_started)
+                                self.not_started.remove(this_not_started)
 
+                # Выполнение заданий
+                if settings.AUTO_TASK is True:
+                    try:
                         self.answers = await self.get_answers()
-                                 
                         await self.join_mission(http_client=http_client, max_count_tasks=settings.MAX_TASK_ITERATIONS)            # начинаем (инит) доступные задания
 
                         for this_active_missions in self.active_missions:
@@ -442,12 +443,12 @@ class Tapper:
                                         if this_item_require_answer:
                                             if this_id in self.answers:
                                                 answer = self.answers[this_id]['answer'][this_item_index]
-                                                logger.info(f"{self.session_name} | Submit step {this_item_index+1}/{all_items_count} of the task <m>{this_title}</m> with the code <m>{answer}</m> for verification")
+                                                logger.info(f"{self.session_name} | Submit step {this_item_index+1}/{all_items_count} of the task <m>{this_title}</m> with the code <g>{answer}</g> for verification")
                                                 resp_finish_mission_item = await self.finish_mission_item(http_client=http_client, task_id=this_id, item_index=this_item_index, user_input=answer)
                                                 if 'statusCode' in resp_finish_mission_item and resp_finish_mission_item['statusCode'] != 200:
                                                     if resp_finish_mission_item['message'] != 'check_in_progress':
                                                         logger.error(f"{self.session_name} | Error when sending to check step {this_item_index+1}/{all_items_count} of the task <m>{this_title}</m> "
-                                                                     f"with the answer code <m>{answer}</m>: {resp_finish_mission_item['message']}")
+                                                                     f"with the answer code <g>{answer}</g>: {resp_finish_mission_item['message']}")
                                                 else:
                                                     check_task_response = await self.check_task_response(task_response=resp_finish_mission_item, section='active', missions_id=this_id, item=this_item_index)
                                                     if check_task_response['status']:
@@ -458,13 +459,13 @@ class Tapper:
                                                             if 'statusCode' in resp_finish_mission_item and resp_finish_mission_item['statusCode'] != 200:
                                                                 if resp_finish_mission_item['message'] != 'check_in_progress':
                                                                     logger.error(f"{self.session_name} | Error when sending to check step {this_item_index+1}/{all_items_count} of the task <m>{this_title}</m> "
-                                                                    f"with the answer code <m>{answer}</m>: {resp_finish_mission_item['message']}")
+                                                                    f"with the answer code <g>{answer}</g>: {resp_finish_mission_item['message']}")
                                                             else:
                                                                 check_task_response = await self.check_task_response(task_response=resp_finish_mission_item, section='active', missions_id=this_id, item=this_item_index)
                                                                 if check_task_response['status']:
                                                                     check_task_all=check_task_response['all_verifed']
                                             else:
-                                                logger.warning(f"{self.session_name} | There is no answer for the task {this_title} in the database yet")
+                                                logger.warning(f"{self.session_name} | There is no answer for the task {this_title} in the database yet | ID <e>{this_id}</e>")
                                         else:
                                             logger.info(f"{self.session_name} | Submit step {this_item_index+1}/{all_items_count} of the task <m>{this_title}</m> for verification")
                                             resp_finish_mission_item = await self.finish_mission_item(http_client=http_client, task_id=this_id, item_index=this_item_index)
@@ -506,6 +507,9 @@ class Tapper:
                                             status = await self.claim_reward(http_client=http_client, task_id=this_id)
                                             logger.success(f"{self.session_name} | Successfully claim <m>{this_title}</m> reward {this_reward}")
                                     await asyncio.sleep(delay=randint(a=3, b=5))
+                    except Exception as error:
+                        logger.error(f"{self.session_name} | Unknown error: {escape_html(error)}")
+                        await asyncio.sleep(delay=3)
 
                 # Строим город
                 if settings.AUTO_UPGRADE_TOWN is True:
