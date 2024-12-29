@@ -235,7 +235,7 @@ class Tapper:
 
     async def get_answers(self) -> dict[str]:
         try:
-            url = 'https://raw.githubusercontent.com/Gerashka2/Database/main/TapSwap.json'
+            url = 'https://raw.githubusercontent.com/telbip/TapSwap/refs/heads/main/DataBase/TapSwap.json'
             data = requests.get(url=url)
             data_json = data.json()
 
