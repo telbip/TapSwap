@@ -1,3 +1,5 @@
+import re
+
 headers = {
     'Accept': '*/*',
     'Accept-Language': 'ru-RU,ru;q=0.9',
@@ -8,11 +10,27 @@ headers = {
     'Sec-Fetch-Dest': 'empty',
     'Sec-Fetch-Mode': 'cors',
     'Sec-Fetch-Site': 'cross-site',
-    'User-Agent': 'Mozilla/5.0 (Linux; Android 13; RMX3630 Build/TP1A.220905.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/125.0.6422.165 Mobile Safari/537.36',
-    'Sec-Ch-Ua': '"Android WebView";v="125", "Chromium";v="125", "Not.A/Brand";v="24"',
     'Sec-Ch-Ua-Mobile': '?1',
     'Sec-Ch-Ua-Platform': '"Android"',
     'X-App': 'tapswap_server',
     'X-Cv': '',
     'X-Touch': '',
 }
+
+def get_sec_ch_ua(user_agent):
+    pattern = r'(Chrome|Chromium)\/(\d+)\.(\d+)\.(\d+)\.(\d+)'
+
+    match = re.search(pattern, user_agent)
+
+    if match:
+        browser = match.group(1)
+        version = match.group(2)
+
+        if browser == 'Chrome':
+            sec_ch_ua = f'"Chromium";v="{version}", "Not;A=Brand";v="24", "Google Chrome";v="{version}"'
+        else:
+            sec_ch_ua = f'"Chromium";v="{version}", "Not;A=Brand";v="24"'
+
+        return {'Sec-Ch-Ua': sec_ch_ua}
+    else:
+        return {}

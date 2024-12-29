@@ -6,8 +6,8 @@ then
 
     sudo apt update
     sudo apt install -y wget curl gnupg
-    wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-    sudo dpkg -i google-chrome-stable_current_amd64.deb
+    wget https://mirror.cs.uchicago.edu/google-chrome/pool/main/g/google-chrome-stable/google-chrome-stable_114.0.5735.90-1_amd64.deb
+    sudo dpkg -i google-chrome-stable_114.0.5735.90-1_amd64.deb
     sudo apt install -f -y
 
     echo "Google Chrome installed successfully"

@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     ADD_TAPS_ON_TURBO: int = 2500
 
     AUTO_TASK: bool = True
-    MAX_TASK_ITERATIONS: int = 4
+    MAX_TASK_ITERATIONS: int = 7
     
     AUTO_UPGRADE_TAP: bool = True
     MAX_TAP_LEVEL: int = 10
@@ -25,13 +25,13 @@ class Settings(BaseSettings):
     AUTO_UPGRADE_TOWN: bool = True
     MAX_TOWN_LEVEL: int = 20
 
-    APPLY_DAILY_ENERGY: bool = True
-    APPLY_DAILY_TURBO: bool = True
+    APPLY_DAILY_ENERGY: bool = False
+    APPLY_DAILY_TURBO: bool = False
 
     RANDOM_TAPS_COUNT: list[int] = [50, 200]
     SLEEP_BETWEEN_TAP: list[int] = [10, 25]
 
-    USE_PROXY_FROM_FILE: bool = False
+    USE_PROXY_FROM_FILE: bool = True
 
 
 settings = Settings()

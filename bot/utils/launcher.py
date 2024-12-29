@@ -1,15 +1,15 @@
 import asyncio
 import argparse
 from itertools import cycle
-
+import glob
 from pyrogram import Client, compose
-
+import os
+from better_proxy import Proxy
 from bot.config import settings
 from bot.utils import logger
 from bot.core.tapper import run_tapper
+from bot.utils.accounts import Accounts
 from bot.core.registrator import register_sessions
-from bot.utils.scripts import get_session_names, get_proxies
-
 banner = """
 
 ▀▀█▀▀ █▀▀█ █▀▀█ ░█▀▀▀█ █   █ █▀▀█ █▀▀█ ░█▀▀█ █▀▀█ ▀▀█▀▀
@@ -28,6 +28,17 @@ Select an action:
 
 
 global tg_clients
+
+def get_proxy(raw_proxy: str) -> Proxy:
+    return Proxy.from_str(proxy=raw_proxy).as_url if raw_proxy else None
+    
+def get_session_names() -> list[str]:
+    session_names = sorted(glob.glob("sessions/*.session"))
+    session_names = [
+        os.path.splitext(os.path.basename(file))[0] for file in session_names
+    ]
+
+    return session_names
 
 
 async def get_tg_clients() -> list[Client]:
@@ -54,6 +65,10 @@ async def get_tg_clients() -> list[Client]:
 
     return tg_clients
 
+async def get_proxies() -> list[str]:
+    accounts = Accounts()
+    account_list = await accounts.get_accounts()
+    return [account['proxy'] for account in account_list if 'proxy' in account]
 
 async def process() -> None:
     parser = argparse.ArgumentParser()
@@ -61,7 +76,7 @@ async def process() -> None:
 
     print(banner)
 
-    logger.info(f"Detected {len(get_session_names())} sessions | {len(get_proxies())} proxies")
+    logger.info(f"Detected {len(get_session_names())} sessions | {len(await get_proxies())} proxies")
 
     action = parser.parse_args().action
 
@@ -94,15 +109,15 @@ async def process() -> None:
 
 
 async def run_tasks(tg_clients: list[Client]):
-    proxies = get_proxies()
-    proxies_cycle = cycle(proxies) if proxies else None
     lock = asyncio.Lock()
+    accounts = await Accounts().get_accounts()
 
+    session_proxies = {account["session_name"]: account.get("proxy", None) for account in accounts}
     tasks = [
         asyncio.create_task(
             run_tapper(
                 tg_client=tg_client,
-                proxy=next(proxies_cycle) if proxies_cycle else None,
+                proxy=session_proxies.get(tg_client.name, None),
                 lock=lock,
             )
         )

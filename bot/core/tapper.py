@@ -11,13 +11,13 @@ from better_proxy import Proxy
 from pyrogram import Client
 from pyrogram.errors import Unauthorized, UserDeactivated, AuthKeyUnregistered, FloodWait
 from pyrogram.raw.functions.messages import RequestWebView
-
+from bot.core.agents import generate_random_user_agent
 from bot.config import settings
 from bot.utils import logger
 from bot.utils.town import build_town
 from bot.utils.scripts import escape_html, login_in_browser
 from bot.exceptions import InvalidSession
-from .headers import headers
+from bot.core.headers import headers, get_sec_ch_ua
 
 
 class Tapper:
@@ -26,6 +26,12 @@ class Tapper:
         self.tg_client = tg_client
         self.user_id = 0
         self.lock = lock
+        
+        self.session_ug_dict = self.load_user_agents() or []
+
+        user_agent = self.check_user_agent()
+        headers['User-Agent'] = user_agent
+        headers.update(**get_sec_ch_ua(user_agent))
 
     async def get_auth_url(self, proxy: str | None) -> str:
         if proxy:
@@ -87,9 +93,55 @@ class Tapper:
         except Exception as error:
             logger.error(f"{self.session_name} | Unknown error during Authorization: {escape_html(error)}")
             await asyncio.sleep(delay=3)
+    def check_user_agent(self):
+        load = next(
+            (session['user_agent'] for session in self.session_ug_dict if session['session_name'] == self.session_name),
+            None)
 
+        if load is None:
+            return self.save_user_agent()
+
+        return load
+    async def generate_random_user_agent(self):
+        return generate_random_user_agent()
+        
+    def save_user_agent(self):
+        user_agents_file_name = "user_agents.json"
+
+        if not any(session['session_name'] == self.session_name for session in self.session_ug_dict):
+            user_agent_str = generate_random_user_agent()
+
+            self.session_ug_dict.append({
+                'session_name': self.session_name,
+                'user_agent': user_agent_str})
+
+            with open(user_agents_file_name, 'w') as user_agents:
+                json.dump(self.session_ug_dict, user_agents, indent=4)
+
+            logger.success(f"<light-yellow>{self.session_name}</light-yellow> | User agent saved successfully")
+
+            return user_agent_str
+            
+    def load_user_agents(self):
+        user_agents_file_name = f'sessions/accounts.json'
+
+        try:
+            with open(user_agents_file_name, 'r') as user_agents:
+                session_data = json.load(user_agents)
+                if isinstance(session_data, list):
+                    return session_data
+
+        except FileNotFoundError:
+            logger.warning("User agents file not found, creating...")
+
+        except json.JSONDecodeError:
+            logger.warning("User agents file is empty or corrupted.")
+
+        return []
+        
     async def login(self, http_client: aiohttp.ClientSession, auth_url: str, proxy: str) -> tuple[dict[str], str]:
         response_text = ''
+        #print(f"Headers: {http_client.headers}")
         try:
             async with self.lock:
                 response_text, x_cv, x_touch = login_in_browser(auth_url, proxy=proxy)
@@ -181,7 +233,7 @@ class Tapper:
 
     async def get_answers(self) -> dict[str]:
         try:
-            url = 'https://raw.githubusercontent.com/CatSnowdrop/Database/main/TapSwap.json'
+            url = 'https://raw.githubusercontent.com/Gerashka2/Database/main/TapSwap.json'
             data = requests.get(url=url)
             data_json = data.json()
 
@@ -413,7 +465,6 @@ class Tapper:
                     try:
                         self.answers = await self.get_answers()
                         await self.join_mission(http_client=http_client, max_count_tasks=settings.MAX_TASK_ITERATIONS)            # начинаем (инит) доступные задания
-
                         for this_active_missions in self.active_missions:
                             this_id = this_active_missions['id']                                 # id задания
                             this_items = this_active_missions['items']                           # items задания
@@ -465,6 +516,9 @@ class Tapper:
                                                                 if check_task_response['status']:
                                                                     check_task_all=check_task_response['all_verifed']
                                             else:
+                                                message = f"{this_title}@{this_id}\n"
+                                                with open('need_answer.txt', 'a', encoding='utf-8') as f:
+                                                    f.write(message)
                                                 logger.warning(f"{self.session_name} | There is no answer for the task {this_title} in the database yet | ID <e>{this_id}</e>")
                                         else:
                                             logger.info(f"{self.session_name} | Submit step {this_item_index+1}/{all_items_count} of the task <m>{this_title}</m> for verification")
